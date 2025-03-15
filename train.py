@@ -219,8 +219,6 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    print(str(args))
-
     trial_name = args.trial_name
     device = torch.device("cuda:%d"%(args.gpu_id))
     input_code_size = args.z_dim
