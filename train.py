@@ -44,7 +44,7 @@ def sample_data(dataloader, image_size=4):
     return loader
 
 
-def train(generator, discriminator, init_step, loader, total_iter=600000):
+def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter):
     step = init_step # can be 1 = 8, 2 = 16, 3 = 32, 4 = 64, 5 = 128, 6 = 128
     data_loader = sample_data(loader, 4 * 2 ** step)
     dataset = iter(data_loader)
@@ -86,7 +86,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
     #one = torch.FloatTensor([1]).to(device)
     one = torch.tensor(1, dtype=torch.float).to(device)
     mone = one * -1
-    iteration = args.start_iter
+    iteration = start_iter
 
     for i in pbar:
         discriminator.zero_grad()
@@ -275,4 +275,4 @@ if __name__ == '__main__':
 
     loader = imagefolder_loader(args.path)
 
-    train(generator, discriminator, args.init_step, loader, args.total_iter)
+    train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter)
