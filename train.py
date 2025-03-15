@@ -172,8 +172,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
                     images,
                     f'{log_folder}/sample/{str(i + 1).zfill(6)}.png',
                     nrow=10,
-                    normalize=True,
-                    range=(-1, 1))
+                    normalize=True)
  
         if (i+1) % 10000 == 0 or i==0:
             try:
