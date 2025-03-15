@@ -255,12 +255,6 @@ if __name__ == '__main__':
             generator.load_state_dict(torch.load(generator_path))
             g_running.load_state_dict(torch.load(generator_path))
             discriminator.load_state_dict(torch.load(discriminator_path))
-            if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
-                g_optimizer.load_state_dict(torch.load(optimizer_g_path))
-                d_optimizer.load_state_dict(torch.load(optimizer_d_path))
-                print("Optimizers loaded successfully!")
-            else:
-                print("Warning: Optimizer checkpoint not found. Using new optimizers!")
         else:
             print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
     else:
@@ -271,6 +265,12 @@ if __name__ == '__main__':
     g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
     d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.99))
 
+    if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
+        g_optimizer.load_state_dict(torch.load(optimizer_g_path))
+        d_optimizer.load_state_dict(torch.load(optimizer_d_path))
+        print("Optimizers loaded successfully!")
+    else:
+        print("Warning: Optimizer checkpoint not found. Using new optimizers!")
     accumulate(g_running, generator, 0)
 
     loader = imagefolder_loader(args.path)
