@@ -10,6 +10,7 @@ from torch.autograd import Variable, grad
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, utils
 
+from progan_modules import Generator, Discriminator
 
 
 def accumulate(model1, model2, decay=0.999):
