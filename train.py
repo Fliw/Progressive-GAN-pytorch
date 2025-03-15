@@ -44,7 +44,7 @@ def sample_data(dataloader, image_size=4):
     return loader
 
 
-def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=100000):
+def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=0):
     step = init_step # can be 1 = 8, 2 = 16, 3 = 32, 4 = 64, 5 = 128, 6 = 128
     data_loader = sample_data(loader, 4 * 2 ** step)
     dataset = iter(data_loader)
@@ -95,7 +95,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
         if iteration > total_iter//6:
             alpha = 0
-            iteration = 0
+            # iteration = 0
             step += 1
 
             if step > 6:
