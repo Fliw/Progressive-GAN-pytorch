@@ -256,8 +256,8 @@ if __name__ == '__main__':
             g_running.load_state_dict(torch.load(generator_path))
             discriminator.load_state_dict(torch.load(discriminator_path))
             if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
-                optimizer_g.load_state_dict(torch.load(optimizer_g_path))
-                optimizer_d.load_state_dict(torch.load(optimizer_d_path))
+                g_optimizer.load_state_dict(torch.load(optimizer_g_path))
+                d_optimizer.load_state_dict(torch.load(optimizer_d_path))
                 print("Optimizers loaded successfully!")
             else:
                 print("Warning: Optimizer checkpoint not found. Using new optimizers!")
