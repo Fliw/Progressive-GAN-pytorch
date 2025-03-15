@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 import argparse
 import random
-
+import sys
 import torch
 import torch.nn.functional as F
 from torch import nn, optim
@@ -11,7 +11,6 @@ from torch.autograd import Variable, grad
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, utils
 
-from progan_modules import Generator, Discriminator
 
 
 def accumulate(model1, model2, decay=0.999):
@@ -199,10 +198,11 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
 
 
 if __name__ == '__main__':
-
+    sys.argv = [sys.argv[0]]
     parser = argparse.ArgumentParser(description='Progressive GAN, during training, the model will learn to generate  images from a low resolution, then progressively getting high resolution ')
 
-    parser.add_argument('--path', type=str, help='path of specified dataset, should be a folder that has one or many sub image folders inside')
+    parser.add_argument('--checkpoint', type=str, default=None, help='Path to model checkpoint directory (default: None, train from scratch)')
+    parser.add_argument('--path', type=str,default="/content/merged_dataset/Acne", help='path of specified dataset, should be a folder that has one or many sub image folders inside')
     parser.add_argument('--trial_name', type=str, default="test1", help='a brief description of the training trial')
     parser.add_argument('--gpu_id', type=int, default=0, help='0 is the first gpu, 1 is the second gpu, etc.')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate, default is 1e-3, usually dont need to change it, you can try make it bigger, such as 2e-3')
@@ -230,9 +230,19 @@ if __name__ == '__main__':
     g_running = Generator(in_channel=args.channel, input_code_dim=input_code_size, pixel_norm=args.pixel_norm, tanh=args.tanh).to(device)
     
     ## you can directly load a pretrained model here
-    #generator.load_state_dict(torch.load('./tr checkpoint/150000_g.model'))
-    #g_running.load_state_dict(torch.load('checkpoint/150000_g.model'))
-    #discriminator.load_state_dict(torch.load('checkpoint/150000_d.model'))
+    if args.checkpoint:
+        generator_path = os.path.join(args.checkpoint, "g.model")
+        discriminator_path = os.path.join(args.checkpoint, "d.model")
+
+        if os.path.exists(generator_path) and os.path.exists(discriminator_path):
+            print(f"Loading checkpoints from {args.checkpoint}...")
+            generator.load_state_dict(torch.load(generator_path))
+            g_running.load_state_dict(torch.load(generator_path))
+            discriminator.load_state_dict(torch.load(discriminator_path))
+        else:
+            print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
+    else:
+        print("No checkpoint provided, training from scratch.")
     
     g_running.train(False)
 
