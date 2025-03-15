@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 import argparse
 import random
-import sys
 import torch
 import torch.nn.functional as F
 from torch import nn, optim
@@ -198,7 +197,6 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
 
 
 if __name__ == '__main__':
-    sys.argv = [sys.argv[0]]
     parser = argparse.ArgumentParser(description='Progressive GAN, during training, the model will learn to generate  images from a low resolution, then progressively getting high resolution ')
 
     parser.add_argument('--checkpoint', type=str, default=None, help='Path to model checkpoint directory (default: None, train from scratch)')
