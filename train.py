@@ -5,6 +5,7 @@ import argparse
 import random
 import torch
 import torch.nn.functional as F
+import os
 from torch import nn, optim
 from torch.autograd import Variable, grad
 from torch.utils.data import DataLoader
@@ -86,7 +87,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
     #one = torch.FloatTensor([1]).to(device)
     one = torch.tensor(1, dtype=torch.float).to(device)
     mone = one * -1
-    iteration = 0
+    iteration = args.start_iter
 
     for i in pbar:
         discriminator.zero_grad()
@@ -177,6 +178,8 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
             try:
                 torch.save(g_running.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_g.model')
                 torch.save(discriminator.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_d.model')
+                torch.save(g_optimizer.state_dict(), os.path.join(log_folder, 'checkpoint', f'{str(i + 1).zfill(6)}_g_optim.pth'))
+                torch.save(d_optimizer.state_dict(), os.path.join(log_folder, 'checkpoint', f'{str(i + 1).zfill(6)}_d_optim.pth'))
             except:
                 pass
 
@@ -200,6 +203,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Progressive GAN, during training, the model will learn to generate  images from a low resolution, then progressively getting high resolution ')
 
+    parser.add_argument('--start_iter', type=int, default=0, help='Iterasi awal dari training')
     parser.add_argument('--checkpoint', type=str, default=None, help='Path to model checkpoint directory (default: None, train from scratch)')
     parser.add_argument('--path', type=str,default="/content/merged_dataset/Acne", help='path of specified dataset, should be a folder that has one or many sub image folders inside')
     parser.add_argument('--trial_name', type=str, default="test1", help='a brief description of the training trial')
@@ -243,6 +247,28 @@ if __name__ == '__main__':
     else:
         print("No checkpoint provided, training from scratch.")
     
+    if args.checkpoint:
+        generator_path = os.path.join(args.checkpoint, "g.model")
+        discriminator_path = os.path.join(args.checkpoint, "d.model")
+        optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
+        optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
+
+        if os.path.exists(generator_path) and os.path.exists(discriminator_path):
+            print(f"Loading checkpoints from {args.checkpoint}...")
+            generator.load_state_dict(torch.load(generator_path))
+            g_running.load_state_dict(torch.load(generator_path))
+            discriminator.load_state_dict(torch.load(discriminator_path))
+            if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
+                optimizer_g.load_state_dict(torch.load(optimizer_g_path))
+                optimizer_d.load_state_dict(torch.load(optimizer_d_path))
+                print("Optimizers loaded successfully!")
+            else:
+                print("Warning: Optimizer checkpoint not found. Using new optimizers!")
+        else:
+            print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
+    else:
+        print("No checkpoint provided, training from scratch.")
+
     g_running.train(False)
 
     g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
