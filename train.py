@@ -95,7 +95,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
         if iteration > total_iter//6:
             alpha = 0
-            # iteration = 0
+            iteration = 0
             step += 1
 
             if step > 6:
