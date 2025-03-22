@@ -86,7 +86,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     #one = torch.FloatTensor([1]).to(device)
     one = torch.tensor(1, dtype=torch.float).to(device)
     mone = one * -1
-    iteration = 40000
+    iteration = 90000
 
     for i in pbar:
         discriminator.zero_grad()
@@ -95,7 +95,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
         if iteration > total_iter//6:
             alpha = 1
-            iteration = 40000
+            iteration = 90000
             step += 1
 
             if step > 6:
