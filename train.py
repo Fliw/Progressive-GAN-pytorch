@@ -265,8 +265,8 @@ if __name__ == '__main__':
     g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
     d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.99))
 
-    optimizer_g_path = os.path.join(args.checkpoint_dir, "g_optim.pth")
-    optimizer_d_path = os.path.join(args.checkpoint_dir, "d_optim.pth")
+    optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
+    optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
     
     if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
         g_optimizer.load_state_dict(torch.load(optimizer_g_path))
