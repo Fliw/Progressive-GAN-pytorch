@@ -232,51 +232,36 @@ if __name__ == '__main__':
     
     ## you can directly load a pretrained model here
     if args.checkpoint:
-        generator_path = os.path.join(args.checkpoint, "g.model")
-        discriminator_path = os.path.join(args.checkpoint, "d.model")
-
-        if os.path.exists(generator_path) and os.path.exists(discriminator_path):
-            print(f"Loading checkpoints from {args.checkpoint}...")
-            generator.load_state_dict(torch.load(generator_path))
-            g_running.load_state_dict(torch.load(generator_path))
-            discriminator.load_state_dict(torch.load(discriminator_path))
-        else:
-            print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
-    else:
-        print("No checkpoint provided, training from scratch.")
-    
-    if args.checkpoint:
-        generator_path = os.path.join(args.checkpoint, "g.model")
-        discriminator_path = os.path.join(args.checkpoint, "d.model")
-        optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
-        optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
-
-        if os.path.exists(generator_path) and os.path.exists(discriminator_path):
-            print(f"Loading checkpoints from {args.checkpoint}...")
-            generator.load_state_dict(torch.load(generator_path))
-            g_running.load_state_dict(torch.load(generator_path))
-            discriminator.load_state_dict(torch.load(discriminator_path))
-        else:
-            print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
-    else:
-        print("No checkpoint provided, training from scratch.")
-
-    g_running.train(False)
-
-    g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
-    d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.99))
-
+    generator_path = os.path.join(args.checkpoint, "g.model")
+    discriminator_path = os.path.join(args.checkpoint, "d.model")
     optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
     optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
-    
-    if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
-        g_optimizer.load_state_dict(torch.load(optimizer_g_path))
-        d_optimizer.load_state_dict(torch.load(optimizer_d_path))
-        print("Optimizers loaded successfully!")
+
+        if os.path.exists(generator_path) and os.path.exists(discriminator_path):
+            print(f"Loading checkpoints from {args.checkpoint}...")
+            generator.load_state_dict(torch.load(generator_path))
+            g_running.load_state_dict(torch.load(generator_path))
+            discriminator.load_state_dict(torch.load(discriminator_path))
+        else:
+            print(f"Warning: Checkpoint not found at {args.checkpoint}. Training from scratch!")
+
+        g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
+        d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.99))
+
+        if os.path.exists(optimizer_g_path) and os.path.exists(optimizer_d_path):
+            g_optimizer.load_state_dict(torch.load(optimizer_g_path))
+            d_optimizer.load_state_dict(torch.load(optimizer_d_path))
+            print("Optimizers loaded successfully!")
+        else:
+            print("Warning: Optimizer checkpoint not found. Using new optimizers!")
     else:
-        print("Warning: Optimizer checkpoint not found. Using new optimizers!")
+        print("No checkpoint provided, training from scratch.")
+        g_optimizer = optim.Adam(generator.parameters(), lr=args.lr, betas=(0.0, 0.99))
+        d_optimizer = optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.0, 0.99))
+
+    # apply weight accumulation regardless of checkpoint
     accumulate(g_running, generator, 0)
 
+    # load dataset and start training
     loader = imagefolder_loader(args.path)
-
     train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter)
