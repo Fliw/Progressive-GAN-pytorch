@@ -10,7 +10,8 @@ from torch import nn, optim
 from torch.autograd import Variable, grad
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, utils
-
+import matplotlib.pyplot as plt
+from torchvision.utils import make_grid
 from progan_modules import Generator, Discriminator
 
 
@@ -164,16 +165,32 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
             g_optimizer.step()
             accumulate(g_running, generator)
 
-        if (i + 1) % 1000 == 0 or i==0:
+        if (i + 1) % 1000 == 0 or i == 0:
             with torch.no_grad():
-                images = g_running(torch.randn(5 * 10, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
+                fake_images = g_running(torch.randn(50, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
+
+                real_images = next(iter(dataloader))[0][:50].cpu()
 
                 utils.save_image(
-                    images,
+                    fake_images,
                     f'{log_folder}/sample/{str(i + 1).zfill(6)}.png',
                     nrow=10,
-                    normalize=True)
- 
+                    normalize=True
+                )
+
+                grid_fake = make_grid(fake_images, nrow=10, normalize=True)
+                grid_real = make_grid(real_images, nrow=10, normalize=True)
+
+                fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+                axs[0].imshow(grid_real.permute(1, 2, 0))  # ubah dari CHW ke HWC
+                axs[0].set_title('Real Images (50)')
+                axs[0].axis('off')
+
+                axs[1].imshow(grid_fake.permute(1, 2, 0))
+                axs[1].set_title('Fake Images (50)')
+                axs[1].axis('off')
+
+                plt.show()
         if (i+1) % 10000 == 0 or i==0:
             try:
                 torch.save(g_running.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_g.model')
