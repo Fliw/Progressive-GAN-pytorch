@@ -165,7 +165,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
         if (i + 1) % 1000 == 0 or i == 0:
             with torch.no_grad():
-                fake_images = g_running(torch.randn(8, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
+                fake_images = g_running(torch.randn(24, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
 
                 real_images = next(iter(data_loader))[0][:4].cpu()
 
