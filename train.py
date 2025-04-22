@@ -204,7 +204,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Progressive GAN, during training, the model will learn to generate  images from a low resolution, then progressively getting high resolution ')
 
     parser.add_argument('--start_iter', type=int, default=0, help='Iterasi awal dari training')
-    parser.add_argument('--checkpoint', type=str, default="/content/model/", help='Path to model checkpoint directory (default: None, train from scratch)')
+    parser.add_argument('--checkpoint', type=str, default="None", help='Path to model checkpoint directory (default: None, train from scratch)')
     parser.add_argument('--path', type=str,default="/content/merged_dataset/Acne", help='path of specified dataset, should be a folder that has one or many sub image folders inside')
     parser.add_argument('--trial_name', type=str, default="test1", help='a brief description of the training trial')
     parser.add_argument('--gpu_id', type=int, default=0, help='0 is the first gpu, 1 is the second gpu, etc.')
