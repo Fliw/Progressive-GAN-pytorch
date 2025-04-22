@@ -165,16 +165,16 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
         if (i + 1) % 1000 == 0 or i == 0:
             with torch.no_grad():
-                fake_images = g_running(torch.randn(50, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
+                fake_images = g_running(torch.randn(4, input_code_size).to(device), step=step, alpha=alpha).data.cpu()
 
-                real_images = next(iter(data_loader))[0][:50].cpu()
+                real_images = next(iter(data_loader))[0][:8].cpu()
 
                 combined_images = torch.cat([real_images, fake_images], dim=0)
 
                 utils.save_image(
                     combined_images,
                     f'{log_folder}/sample/compare_{str(i + 1).zfill(6)}.png',
-                    nrow=10,          
+                    nrow=4,          
                     normalize=True,
                     scale_each=True  
                 )
