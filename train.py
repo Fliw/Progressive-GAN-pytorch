@@ -10,8 +10,6 @@ from torch import nn, optim
 from torch.autograd import Variable, grad
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, utils
-import matplotlib.pyplot as plt
-from torchvision.utils import make_grid
 from progan_modules import Generator, Discriminator
 
 
@@ -171,26 +169,16 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
 
                 real_images = next(iter(data_loader))[0][:50].cpu()
 
+                combined_images = torch.cat([real_images, fake_images], dim=0)
+
                 utils.save_image(
-                    fake_images,
-                    f'{log_folder}/sample/{str(i + 1).zfill(6)}.png',
-                    nrow=10,
-                    normalize=True
+                    combined_images,
+                    f'{log_folder}/sample/compare_{str(i + 1).zfill(6)}.png',
+                    nrow=10,          
+                    normalize=True,
+                    scale_each=True  
                 )
 
-                grid_fake = make_grid(fake_images, nrow=10, normalize=True)
-                grid_real = make_grid(real_images, nrow=10, normalize=True)
-
-                fig, axs = plt.subplots(1, 2, figsize=(20, 10))
-                axs[0].imshow(grid_real.permute(1, 2, 0))  # ubah dari CHW ke HWC
-                axs[0].set_title('Real Images (50)')
-                axs[0].axis('off')
-
-                axs[1].imshow(grid_fake.permute(1, 2, 0))
-                axs[1].set_title('Fake Images (50)')
-                axs[1].axis('off')
-
-                plt.show()
         if (i+1) % 10000 == 0 or i==0:
             try:
                 torch.save(g_running.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_g.model')
