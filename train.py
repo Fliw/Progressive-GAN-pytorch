@@ -50,7 +50,8 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     dataset = iter(data_loader)
 
     #total_iter = 600000
-    total_iter_remain = total_iter - (total_iter//6)*(step-1)
+    n_stage = 9
+    total_iter_remain = total_iter - (total_iter // n_stage) * (step - 1)
 
     pbar = tqdm(range(total_iter_remain))
 
@@ -91,16 +92,16 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     for i in pbar:
         discriminator.zero_grad()
 
-        alpha = min(1, (2/(total_iter//6)) * iteration)
+        alpha = min(1, 2.0 / (total_iter // n_stage) * iteration)
 
-        if iteration > total_iter//6:
+        if iteration > total_iter // n_stage:
             alpha = 0
             iteration = 0
             step += 1
 
-            if step > 6:
+            if step > n_stage - 1:
                 alpha = 1
-                step = 6
+                step = n_stage - 1
             data_loader = sample_data(loader, 4 * 2 ** step)
             dataset = iter(data_loader)
 

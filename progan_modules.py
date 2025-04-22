@@ -136,6 +136,8 @@ class Generator(nn.Module):
         self.progression_64 = ConvBlock(in_channel, in_channel//2, 3, 1, pixel_norm=pixel_norm)
         self.progression_128 = ConvBlock(in_channel//2, in_channel//4, 3, 1, pixel_norm=pixel_norm)
         self.progression_256 = ConvBlock(in_channel//4, in_channel//4, 3, 1, pixel_norm=pixel_norm)
+        self.progression_512 = ConvBlock(in_channel // 4,  in_channel // 8,  3, 1, pixel_norm=pixel_norm)
+        self.progression_1024= ConvBlock(in_channel // 8,  in_channel // 8,  3, 1, pixel_norm=pixel_norm)
 
         self.to_rgb_8 = EqualConv2d(in_channel, 3, 1)
         self.to_rgb_16 = EqualConv2d(in_channel, 3, 1)
@@ -143,8 +145,10 @@ class Generator(nn.Module):
         self.to_rgb_64 = EqualConv2d(in_channel//2, 3, 1)
         self.to_rgb_128 = EqualConv2d(in_channel//4, 3, 1)
         self.to_rgb_256 = EqualConv2d(in_channel//4, 3, 1)
+        self.to_rgb_512  = EqualConv2d(in_channel // 8,  3, 1)
+        self.to_rgb_1024 = EqualConv2d(in_channel // 8,  3, 1)
         
-        self.max_step = 6
+        self.max_step = 8
 
     def progress(self, feat, module):
         out = F.interpolate(feat, scale_factor=2, mode='bilinear', align_corners=False)
@@ -193,12 +197,22 @@ class Generator(nn.Module):
         if step==6:
             return self.output( out_128, out_256, self.to_rgb_128, self.to_rgb_256, alpha )
 
+        out_512 = self.progress(out_256, self.progression_512)
+        if step == 7:
+            return self.output(out_256, out_512, self.to_rgb_256, self.to_rgb_512, alpha)
+
+        out_1024 = self.progress(out_512, self.progression_1024)
+        if step == 8:
+            return self.output(out_512, out_1024, self.to_rgb_512, self.to_rgb_1024, alpha)
+
 
 class Discriminator(nn.Module):
     def __init__(self, feat_dim=128):
         super().__init__()
 
-        self.progression = nn.ModuleList([ConvBlock(feat_dim//4, feat_dim//4, 3, 1),
+        self.progression = nn.ModuleList([ConvBlock(feat_dim // 8, feat_dim // 8, 3, 1),
+                                          ConvBlock(feat_dim // 8, feat_dim // 4, 3, 1),
+                                          ConvBlock(feat_dim//4, feat_dim//4, 3, 1),
                                           ConvBlock(feat_dim//4, feat_dim//2, 3, 1),
                                           ConvBlock(feat_dim//2, feat_dim, 3, 1),
                                           ConvBlock(feat_dim, feat_dim, 3, 1),
@@ -206,7 +220,9 @@ class Discriminator(nn.Module):
                                           ConvBlock(feat_dim, feat_dim, 3, 1),
                                           ConvBlock(feat_dim+1, feat_dim, 3, 1, 4, 0)])
 
-        self.from_rgb = nn.ModuleList([EqualConv2d(3, feat_dim//4, 1),
+        self.from_rgb = nn.ModuleList([EqualConv2d(3, feat_dim // 8, 1),
+                                       EqualConv2d(3, feat_dim // 8, 1),
+                                       EqualConv2d(3, feat_dim//4, 1),
                                        EqualConv2d(3, feat_dim//4, 1),
                                        EqualConv2d(3, feat_dim//2, 1),
                                        EqualConv2d(3, feat_dim, 1),
