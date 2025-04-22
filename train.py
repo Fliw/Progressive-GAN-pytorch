@@ -232,10 +232,10 @@ if __name__ == '__main__':
     
     ## you can directly load a pretrained model here
     if args.checkpoint:
-    generator_path = os.path.join(args.checkpoint, "g.model")
-    discriminator_path = os.path.join(args.checkpoint, "d.model")
-    optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
-    optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
+        generator_path = os.path.join(args.checkpoint, "g.model")
+        discriminator_path = os.path.join(args.checkpoint, "d.model")
+        optimizer_g_path = os.path.join(args.checkpoint, "g_optim.pth")
+        optimizer_d_path = os.path.join(args.checkpoint, "d_optim.pth")
 
         if os.path.exists(generator_path) and os.path.exists(discriminator_path):
             print(f"Loading checkpoints from {args.checkpoint}...")
