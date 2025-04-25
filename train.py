@@ -43,7 +43,7 @@ def sample_data(dataloader, image_size=4):
     return loader
 
 
-def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=0):
+def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=0, is_alpha_done=False):
     step = init_step # can be 1 = 8, 2 = 16, 3 = 32, 4 = 64, 5 = 128, 6 = 128
     data_loader = sample_data(loader, 4 * 2 ** step)
     dataset = iter(data_loader)
@@ -82,7 +82,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     copy('train.py', log_folder+'/train_%s.py'%post_fix)
     copy('progan_modules.py', log_folder+'/model_%s.py'%post_fix)
 
-    alpha = 0
+    alpha = 1.0 if is_alpha_done else 0.0
     #one = torch.FloatTensor([1]).to(device)
     one = torch.tensor(1, dtype=torch.float).to(device)
     mone = one * -1
@@ -91,10 +91,11 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     for i in pbar:
         discriminator.zero_grad()
 
-        alpha = min(1, 2.0 / (total_iter // n_stage) * iteration)
+        if not is_alpha_done:
+            alpha = min(1, 2.0 / (total_iter // n_stage) * iteration)
 
         if iteration > total_iter // n_stage:
-            alpha = 0
+            alpha = 1.0 if is_alpha_done else 0.0
             iteration = 0
             step += 1
 
@@ -222,6 +223,7 @@ if __name__ == '__main__':
     parser.add_argument('--total_iter', type=int, default=300000, help='how many iterations to train in total, the value is in assumption that init step is 1')
     parser.add_argument('--pixel_norm', default=False, action="store_true", help='a normalization method inside the model, you can try use it or not depends on the dataset')
     parser.add_argument('--tanh', default=False, action="store_true", help='an output non-linearity on the output of Generator, you can try use it or not depends on the dataset')
+    parser.add_argument('--isAlphaDone', default=False, action="store_true", help='jika diset, langsung pakai alpha=1 dan skip fade-in')
     
     args = parser.parse_args()
 
@@ -269,4 +271,4 @@ if __name__ == '__main__':
 
     # load dataset and start training
     loader = imagefolder_loader(args.path)
-    train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter)
+    train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter, args.isAlphaDone)
