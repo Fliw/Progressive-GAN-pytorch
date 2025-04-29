@@ -1,6 +1,8 @@
 from tqdm import tqdm
 import numpy as np
 from PIL import Image
+from datetime import datetime
+import os
 import argparse
 import random
 import torch
@@ -52,14 +54,13 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     n_stage = 9
     total_iter_remain = total_iter - (total_iter // n_stage) * (step - 1)
 
-    pbar = tqdm(range(total_iter_remain))
+    pbar = tqdm(range(total_iter_remain), dynamic_ncols=True, desc=f"Step {step} | Alpha {0:.3f}")
 
     disc_loss_val = 0
     gen_loss_val = 0
     grad_loss_val = 0
 
-    from datetime import datetime
-    import os
+    
     date_time = datetime.now()
     post_fix = '%s_%s_%d_%d.txt'%(trial_name, date_time.date(), date_time.hour, date_time.minute)
     log_folder = 'trial_%s_%s_%d_%d'%(trial_name, date_time.date(), date_time.hour, date_time.minute)
@@ -180,7 +181,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
                     scale_each=True  
                 )
 
-        if (i+1) % 10000 == 0 or i==0:
+        if (i+1) % 5000 == 0 or i==0:
             try:
                 torch.save(g_running.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_g.model')
                 torch.save(discriminator.state_dict(), f'{log_folder}/checkpoint/{str(i + 1).zfill(6)}_d.model')
@@ -189,10 +190,14 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
             except:
                 pass
 
+        if (i+1) % 20 == 0 or i == 0:
+            avg_gen_loss = gen_loss_val / max(1, ((i+1)//n_critic))
+            avg_disc_loss = disc_loss_val / max(1, (i+1))
+            avg_grad_loss = grad_loss_val / max(1, (i+1))
+            pbar.set_description(
+                f"Step {step} | Alpha {alpha:.3f} | G_loss {avg_gen_loss:.4f} | D_loss {avg_disc_loss:.4f} | Grad_penalty {avg_grad_loss:.4f}"
+            )
         if (i+1)%500 == 0:
-            state_msg = (f'{i + 1}; G: {gen_loss_val/(500//n_critic):.3f}; D: {disc_loss_val/500:.3f};'
-                f' Grad: {grad_loss_val/500:.3f}; Alpha: {alpha:.3f}')
-            
             log_file = open(log_file_name, 'a+')
             new_line = "%.5f,%.5f\n"%(gen_loss_val/(500//n_critic), disc_loss_val/500)
             log_file.write(new_line)
@@ -201,9 +206,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
             disc_loss_val = 0
             gen_loss_val = 0
             grad_loss_val = 0
-
-            print(state_msg)
-            #pbar.set_description(state_msg)
+        
 
 
 if __name__ == '__main__':
