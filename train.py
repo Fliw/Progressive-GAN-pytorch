@@ -45,7 +45,7 @@ def sample_data(dataloader, image_size=4):
     return loader
 
 
-def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=0, is_alpha_done=False):
+def train(generator, discriminator, init_step, loader, total_iter=600000, start_iter=0, is_alpha_done=False, alpha_override=None):
     step = init_step # can be 1 = 8, 2 = 16, 3 = 32, 4 = 64, 5 = 128, 6 = 128
     data_loader = sample_data(loader, 4 * 2 ** step)
     dataset = iter(data_loader)
@@ -89,11 +89,18 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
     mone = one * -1
     iteration = 0
 
+    base_alpha = 1.0 if is_alpha_done else (alpha_override or 0.0)
+    alpha = base_alpha
+
     for i in pbar:
         discriminator.zero_grad()
 
         if not is_alpha_done:
-            alpha = min(1, 2.0 / (total_iter // n_stage) * iteration)
+            fade_rate = 2.0 / (total_iter // n_stage)
+            if alpha_override is not None and step == init_step:
+                alpha = min(1.0, base_alpha + fade_rate * iteration)
+            else:
+                alpha = min(1.0, fade_rate * iteration)
 
         if iteration > total_iter // n_stage:
             alpha = 1.0 if is_alpha_done else 0.0
@@ -198,7 +205,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
                 f"Step {step} | Alpha {alpha:.3f} | G_loss {avg_gen_loss:.4f} | D_loss {avg_disc_loss:.4f} | Grad_penalty {avg_grad_loss:.4f}"
             )
         if (i+1)%500 == 0:
-            log_file = open(log_file_name, 'a+')
+            log_file = open(log_file_nalpha_overrideame, 'a+')
             new_line = "%.5f,%.5f\n"%(gen_loss_val/(500//n_critic), disc_loss_val/500)
             log_file.write(new_line)
             log_file.close()
@@ -227,8 +234,15 @@ if __name__ == '__main__':
     parser.add_argument('--pixel_norm', default=False, action="store_true", help='a normalization method inside the model, you can try use it or not depends on the dataset')
     parser.add_argument('--tanh', default=False, action="store_true", help='an output non-linearity on the output of Generator, you can try use it or not depends on the dataset')
     parser.add_argument('--isAlphaDone', default=False, action="store_true", help='jika diset, langsung pakai alpha=1 dan skip fade-in')
-    
+    parser.add_argument('--alpha', type=float, default=None, help='Starting alpha (0-1). Jika >1, akan dibagi 1000 (contoh: 276 → 0.276).')
     args = parser.parse_args()
+
+    alpha_override = None
+    if args.alpha is not None:
+        if args.alpha > 1:
+            alpha_override = args.alpha / 1000.0
+        else:
+            alpha_override = 0
 
     trial_name = args.trial_name
     device = torch.device("cuda:%d"%(args.gpu_id))
@@ -274,4 +288,4 @@ if __name__ == '__main__':
 
     # load dataset and start training
     loader = imagefolder_loader(args.path)
-    train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter, args.isAlphaDone)
+    train(generator, discriminator, args.init_step, loader, args.total_iter, args.start_iter, args.isAlphaDone, alpha_override)
