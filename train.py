@@ -205,7 +205,7 @@ def train(generator, discriminator, init_step, loader, total_iter=600000, start_
                 f"Step {step} | Alpha {alpha:.3f} | G_loss {avg_gen_loss:.4f} | D_loss {avg_disc_loss:.4f} | Grad_penalty {avg_grad_loss:.4f}"
             )
         if (i+1)%500 == 0:
-            log_file = open(log_file_nalpha_overrideame, 'a+')
+            log_file = open(log_file_name, 'a+')
             new_line = "%.5f,%.5f\n"%(gen_loss_val/(500//n_critic), disc_loss_val/500)
             log_file.write(new_line)
             log_file.close()
